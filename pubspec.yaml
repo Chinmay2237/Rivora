@@ -1,26 +1,31 @@
-name: xylophone
-description: A new Flutter application.
+name: rivora
+description: Rivora - Interactive Virtual Musical Instruments
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+  sdk: "^3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^0.1.2
-  audioplayers: ^0.10.0
+  cupertino_icons: ^1.0.8
+  audioplayers: ^6.5.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
 
 flutter:
-
   uses-material-design: true
 
   assets:
     - assets/
+    - assets/branding/
+    - assets/splash/
+    - assets/images/drum_kit/
+    - assets/sounds/drum_kit/
+    - assets/sounds/xylophone/
 
