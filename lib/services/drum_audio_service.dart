@@ -93,7 +93,13 @@ class DrumAudioService with WidgetsBindingObserver {
 
   /// Idempotent initialization loading assets into native SoundPool memory
   Future<void> initialize(List<String> soundAssets) {
-    _initFuture ??= _initializeInternal(soundAssets);
+    if (_isNativeAvailable && _nativeSoundIds.length >= soundAssets.length) {
+      return Future.value();
+    }
+    _initFuture ??= _initializeInternal(soundAssets).catchError((e) {
+      _initFuture = null; // Clear cached future on failure so retry is possible
+      throw e;
+    });
     return _initFuture!;
   }
 
@@ -102,25 +108,30 @@ class DrumAudioService with WidgetsBindingObserver {
     debugPrint(
         '[AudioEngine] Initializing audio engine for ${soundAssets.length} assets...');
 
-    // 1. Try Native Android SoundPool Preloading
+    // 1. Native Android SoundPool Preloading
     if (defaultTargetPlatform == TargetPlatform.android) {
       try {
-        for (final asset in soundAssets) {
-          final res = await _nativeChannel
-              .invokeMethod<int>('preload', {'assetPath': asset});
-          if (res != null && res > 0) {
-            _nativeSoundIds[asset] = res;
-            debugPrint(
-                '[AudioEngine Native] Preloaded $asset -> soundId: $res');
-          }
+        final Map<dynamic, dynamic>? res = await _nativeChannel
+            .invokeMethod<Map<dynamic, dynamic>>('preloadAll', {
+          'assetPaths': soundAssets,
+        });
+
+        if (res != null) {
+          res.forEach((key, val) {
+            if (key is String && val is int && val > 0) {
+              _nativeSoundIds[key] = val;
+            }
+          });
+          debugPrint(
+              '[AudioEngine Native] Preloaded ${_nativeSoundIds.length}/${soundAssets.length} assets');
         }
 
-        // Wait briefly for native OnLoadCompleteListener to confirm readiness
+        // Wait for native OnLoadCompleteListener to confirm sample readiness
         int readyCount = 0;
-        for (int attempt = 0; attempt < 10; attempt++) {
+        for (int attempt = 0; attempt < 15; attempt++) {
           final diag = await getNativeDiagnosticState();
           readyCount = (diag['readyCount'] as int?) ?? 0;
-          if (readyCount >= _nativeSoundIds.length) {
+          if (readyCount >= _nativeSoundIds.length && readyCount > 0) {
             break;
           }
           await Future.delayed(const Duration(milliseconds: 100));
@@ -133,17 +144,20 @@ class DrumAudioService with WidgetsBindingObserver {
               '[AudioEngine Native SUCCESS] Native SoundPool active with $readyCount ready samples!');
         } else {
           _lastErrorMessage = 'Native samples not ready (readyCount: $readyCount)';
+          debugPrint('[AudioEngine Native WARNING] $_lastErrorMessage');
         }
       } catch (e) {
         debugPrint(
-            '[AudioEngine Native WARNING] Native SoundPool not available: $e');
+            '[AudioEngine Native ERROR] Native SoundPool initialization failed: $e');
         _isNativeAvailable = false;
         _lastErrorMessage = 'Native initialization failed: $e';
       }
     }
 
     // 2. Initialize Fallback AudioPlayer Pool ONLY for non-Android platforms
-    if (!_isNativeAvailable && defaultTargetPlatform != TargetPlatform.android && _fallbackPool.isEmpty) {
+    if (!_isNativeAvailable &&
+        defaultTargetPlatform != TargetPlatform.android &&
+        _fallbackPool.isEmpty) {
       for (int i = 0; i < _fallbackPoolSize; i++) {
         try {
           final player = AudioPlayer();
@@ -171,7 +185,8 @@ class DrumAudioService with WidgetsBindingObserver {
       return {'nativeAvailable': false, 'reason': 'Platform is not Android'};
     }
     try {
-      final res = await _nativeChannel.invokeMapMethod<String, dynamic>('getDiagnosticState');
+      final res = await _nativeChannel
+          .invokeMapMethod<String, dynamic>('getDiagnosticState');
       return res ?? {'error': 'Null response'};
     } catch (e) {
       return {'error': e.toString()};
@@ -226,7 +241,8 @@ class DrumAudioService with WidgetsBindingObserver {
     } else {
       _failedPlayCount++;
       _lastErrorMessage = 'Native SoundPool not active for $soundAsset';
-      debugPrint('[AudioTrace ERROR] Native SoundPool not active for $soundAsset');
+      debugPrint(
+          '[AudioTrace ERROR] Native SoundPool not active for $soundAsset');
     }
   }
 
@@ -248,7 +264,6 @@ class DrumAudioService with WidgetsBindingObserver {
         debugPrint('[AudioTrace ERROR] Fallback play error: $e');
       });
     } else {
-      // Last-resort one-shot player
       final player = AudioPlayer();
       player.play(AssetSource(soundAsset), volume: _volume).then((_) {
         _successfulPlayCount++;

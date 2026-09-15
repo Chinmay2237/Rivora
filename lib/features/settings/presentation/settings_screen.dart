@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/app_constants.dart';
 import '../../../services/drum_audio_service.dart';
-
 import '../../../core/constants/asset_paths.dart';
+import '../../../widgets/audio_diagnostic_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,6 +15,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final DrumAudioService _audioService = DrumAudioService();
   bool _visualEffectsEnabled = true;
+  bool _showLabels = true;
+  bool _showNoteNames = true;
 
   void _restoreDefaults() {
     setState(() {
@@ -24,6 +26,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       _audioService.setVolume(1.0);
       _visualEffectsEnabled = true;
+      _showLabels = true;
+      _showNoteNames = true;
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -86,7 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             SizedBox(height: 10),
             Text(
-              'A production-ready virtual musical instrument application featuring interactive drum kit and acoustic xylophone.',
+              'A production-grade mobile music studio featuring 4 playable instruments: Acoustic Drum Kit, Acoustic Xylophone, Grand Piano, and Electronic Drum Pad.',
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 13,
@@ -136,6 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             children: [
+              // Section 1: Audio & Controls
               _buildSectionHeader('AUDIO & CONTROLS'),
               _buildSwitchTile(
                 title: 'Audio Enabled',
@@ -170,8 +175,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   });
                 },
               ),
+
               const SizedBox(height: 20),
-              _buildSectionHeader('APPLICATION'),
+
+              // Section 2: Instrument Preferences
+              _buildSectionHeader('INSTRUMENT PREFERENCES'),
+              _buildSwitchTile(
+                title: 'Show Instrument Labels',
+                subtitle: 'Display names on drum kit pieces',
+                icon: Icons.label_rounded,
+                value: _showLabels,
+                onChanged: (val) {
+                  setState(() {
+                    _showLabels = val;
+                  });
+                },
+              ),
+              _buildSwitchTile(
+                title: 'Show Note Names',
+                subtitle: 'Display pitch names on keyboard keys',
+                icon: Icons.music_note_rounded,
+                value: _showNoteNames,
+                onChanged: (val) {
+                  setState(() {
+                    _showNoteNames = val;
+                  });
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              // Section 3: Developer & Diagnostics
+              _buildSectionHeader('DEVELOPER & DIAGNOSTICS'),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.buttonRadius),
+                ),
+                tileColor: AppTheme.surfacePrimary,
+                leading: const Icon(Icons.bug_report_rounded,
+                    color: AppTheme.accentViolet),
+                title: const Text(
+                  'Developer Audio Diagnostics',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Inspect native SoundPool load state (37 assets)',
+                  style:
+                      TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                    size: 16, color: AppTheme.textSecondary),
+                onTap: () {
+                  AudioDiagnosticDialog.show(context, _audioService);
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              // Section 4: Application & About
+              _buildSectionHeader('ABOUT RIVORA'),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.buttonRadius),
@@ -188,13 +253,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 subtitle: const Text(
                   'Version ${AppConstants.appVersion}',
-                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  style:
+                      TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded,
                     size: 16, color: AppTheme.textSecondary),
                 onTap: _showAboutDialog,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppTheme.buttonRadius),

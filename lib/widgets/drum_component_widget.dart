@@ -6,11 +6,13 @@ import '../app/app_theme.dart';
 class DrumComponentWidget extends StatefulWidget {
   final DrumComponentModel component;
   final DrumAudioService audioService;
+  final bool showLabels;
 
   const DrumComponentWidget({
     super.key,
     required this.component,
     required this.audioService,
+    this.showLabels = false,
   });
 
   @override
@@ -57,21 +59,67 @@ class _DrumComponentWidgetState extends State<DrumComponentWidget> {
           onPointerCancel: (_) => _onPointerUp(),
           child: RepaintBoundary(
             child: AnimatedScale(
-              scale: _isPressed ? 0.96 : 1.0,
+              scale: _isPressed ? 0.95 : 1.0,
               duration: AppTheme.fastAnimation,
               curve: Curves.easeOutCubic,
               child: AnimatedOpacity(
                 duration: AppTheme.fastAnimation,
-                opacity: _isPressed ? 0.88 : 1.0,
-                child: SizedBox.expand(
-                  child: Transform.scale(
-                    scale: 1.22,
-                    child: Image.asset(
-                      widget.component.imageAsset,
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.medium,
+                opacity: _isPressed ? 0.90 : 1.0,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Main Drum / Cymbal Image Asset
+                    Positioned.fill(
+                      child: Image.asset(
+                        widget.component.imageAsset,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
+                      ),
                     ),
-                  ),
+
+                    // Subtle Pressed Glow Overlay
+                    if (_isPressed)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.accentHighlight
+                                .withValues(alpha: 0.15),
+                          ),
+                        ),
+                      ),
+
+                    // Optional Minimal Instrument Label
+                    if (widget.showLabels)
+                      Positioned(
+                        bottom: 4,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: Colors.white24,
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              widget.component.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

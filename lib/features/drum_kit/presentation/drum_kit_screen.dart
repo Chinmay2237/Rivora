@@ -18,6 +18,7 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
   final DrumAudioService _audioService = DrumAudioService();
   late final List<DrumComponentModel> _sortedComponents;
   bool _isLoading = true;
+  bool _showLabels = false;
 
   @override
   void initState() {
@@ -37,6 +38,12 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
     }
   }
 
+  void _toggleLabels() {
+    setState(() {
+      _showLabels = !_showLabels;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,10 +51,14 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar Controls (State changes do NOT rebuild the stage)
-            _DrumKitToolbar(audioService: _audioService),
+            // Top Bar Controls
+            _DrumKitToolbar(
+              audioService: _audioService,
+              showLabels: _showLabels,
+              onToggleLabels: _toggleLabels,
+            ),
 
-            // Interactive Drum Stage
+            // Interactive Acoustic Drum Stage
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -75,7 +86,8 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
                                 children: _sortedComponents.map((comp) {
                                   final left = comp.relativeLeft * stageWidth;
                                   final top = comp.relativeTop * stageHeight;
-                                  final width = comp.relativeWidth * stageWidth;
+                                  final width =
+                                      comp.relativeWidth * stageWidth;
                                   final height =
                                       comp.relativeHeight * stageHeight;
 
@@ -87,6 +99,7 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
                                     child: DrumComponentWidget(
                                       component: comp,
                                       audioService: _audioService,
+                                      showLabels: _showLabels,
                                     ),
                                   );
                                 }).toList(),
@@ -106,8 +119,14 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
 
 class _DrumKitToolbar extends StatefulWidget {
   final DrumAudioService audioService;
+  final bool showLabels;
+  final VoidCallback onToggleLabels;
 
-  const _DrumKitToolbar({required this.audioService});
+  const _DrumKitToolbar({
+    required this.audioService,
+    required this.showLabels,
+    required this.onToggleLabels,
+  });
 
   @override
   State<_DrumKitToolbar> createState() => _DrumKitToolbarState();
@@ -168,6 +187,28 @@ class _DrumKitToolbarState extends State<_DrumKitToolbar> {
             ],
           ),
           const Spacer(),
+
+          // Instrument Labels Toggle Button
+          Semantics(
+            button: true,
+            label: widget.showLabels
+                ? 'Hide instrument labels'
+                : 'Show instrument labels',
+            child: IconButton(
+              icon: Icon(
+                widget.showLabels
+                    ? Icons.label_rounded
+                    : Icons.label_outlined,
+                color: widget.showLabels
+                    ? AppTheme.accentViolet
+                    : AppTheme.textSecondary,
+              ),
+              onPressed: widget.onToggleLabels,
+              tooltip: widget.showLabels
+                  ? 'Hide Instrument Labels'
+                  : 'Show Instrument Labels',
+            ),
+          ),
 
           // Mute Toggle Button
           Semantics(
@@ -233,7 +274,6 @@ class _DrumKitToolbarState extends State<_DrumKitToolbar> {
 class _AcousticStageFloorPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Stage Oval Shadow / Perspective Rug Shadow
     final rugRect = Rect.fromCenter(
       center: Offset(size.width * 0.5, size.height * 0.68),
       width: size.width * 0.88,

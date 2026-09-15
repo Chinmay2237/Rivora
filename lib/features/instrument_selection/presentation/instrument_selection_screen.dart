@@ -21,7 +21,7 @@ class InstrumentSelectionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Bar: Clean Rivora Branding & Settings Access
+              // Studio Header Bar
               Row(
                 children: [
                   Image.asset(
@@ -36,14 +36,29 @@ class InstrumentSelectionScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text(
-                    AppConstants.appName,
-                    style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        AppConstants.appName,
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      Text(
+                        'Your studio, wherever you are.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
                   Semantics(
@@ -65,41 +80,54 @@ class InstrumentSelectionScreen extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              // Section Header: "Your instruments"
-              const Text(
-                'Your instruments',
-                style: TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
+              // Studio Section Header
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    'Make some music',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Play, practice, and explore instruments anywhere.',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              // Instrument Selection Grid (Landscape Layout)
+              // 4 Playable Instrument Cards Grid (Responsive Row)
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final cardWidth = (constraints.maxWidth - 32) / 3;
+                    final cardWidth = (constraints.maxWidth - 48) / 4;
 
                     return SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 1. Interactive Drum Kit
+                          // 1. Acoustic Drum Kit
                           SizedBox(
-                            width: cardWidth.clamp(260.0, 380.0),
+                            width: cardWidth.clamp(200.0, 320.0),
                             height: constraints.maxHeight,
                             child: InstrumentCard(
-                              title: 'Interactive Drum Kit',
-                              subtitle: 'Acoustic percussion • 10 playable pieces',
+                              title: 'Acoustic Drum Kit',
+                              subtitle: '9 pieces • Ultra low latency',
                               description:
-                                  'Full 10-piece drum setup with multi-touch low-latency polyphony.',
+                                  'A responsive acoustic kit with natural drum placement.',
                               icon: Icons.album_rounded,
                               accentColor: AppTheme.accentViolet,
                               previewWidget: _buildDrumPreview(),
@@ -108,17 +136,17 @@ class InstrumentSelectionScreen extends StatelessWidget {
                               },
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 14),
 
                           // 2. Acoustic Xylophone
                           SizedBox(
-                            width: cardWidth.clamp(260.0, 380.0),
+                            width: cardWidth.clamp(200.0, 320.0),
                             height: constraints.maxHeight,
                             child: InstrumentCard(
                               title: 'Acoustic Xylophone',
-                              subtitle: 'Seven-note melodic instrument • 7 notes',
+                              subtitle: '7 notes • Color tuned keyboard',
                               description:
-                                  'Color-tuned 7-note acoustic xylophone with warm resonance.',
+                                  'Play bright melodic notes with immediate tactile feedback.',
                               icon: Icons.music_note_rounded,
                               accentColor: AppTheme.successGreen,
                               previewWidget: _buildXylophonePreview(),
@@ -127,21 +155,43 @@ class InstrumentSelectionScreen extends StatelessWidget {
                               },
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 14),
 
-                          // 3. Piano & Synth (Coming Soon)
+                          // 3. Grand Piano
                           SizedBox(
-                            width: cardWidth.clamp(260.0, 380.0),
+                            width: cardWidth.clamp(200.0, 320.0),
                             height: constraints.maxHeight,
                             child: InstrumentCard(
-                              title: 'Piano & Synth',
-                              subtitle: 'Coming soon',
+                              title: 'Grand Piano',
+                              subtitle: '13 keys • Chromatic scale (C4-C5)',
                               description:
-                                  '88-key acoustic grand piano with velocity sustain modeling.',
+                                  'Explore chords, melodies, and expressive keyboard playing.',
                               icon: Icons.piano_rounded,
-                              accentColor: AppTheme.textMuted,
+                              accentColor: const Color(0xFF38BDF8),
                               previewWidget: _buildPianoPreview(),
-                              isAvailable: false,
+                              onTap: () {
+                                Navigator.pushNamed(context, AppRouter.piano);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+
+                          // 4. Electronic Drum Pad
+                          SizedBox(
+                            width: cardWidth.clamp(200.0, 320.0),
+                            height: constraints.maxHeight,
+                            child: InstrumentCard(
+                              title: 'Electronic Drum Pad',
+                              subtitle: '8 MPC pads • Rhythmic beat maker',
+                              description:
+                                  'Trigger punchy electronic sounds and build rhythmic patterns.',
+                              icon: Icons.grid_view_rounded,
+                              accentColor: const Color(0xFFF2B866),
+                              previewWidget: _buildPadPreview(),
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRouter.electronicPad);
+                              },
                             ),
                           ),
                         ],
@@ -153,7 +203,7 @@ class InstrumentSelectionScreen extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // Bottom Subtle Audio Status Area
+              // Bottom Audio Engine Status Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -169,7 +219,7 @@ class InstrumentSelectionScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       const Text(
-                        'Audio Engine: Active (Low Latency)',
+                        'Audio Engine: Native SoundPool Active (37 Assets Preloaded)',
                         style: TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 11,
@@ -197,21 +247,20 @@ class InstrumentSelectionScreen extends StatelessWidget {
 
   Widget _buildDrumPreview() {
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
         color: const Color(0xFF0F141F),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF222B3A)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-          Icon(Icons.trip_origin_rounded, size: 20, color: AppTheme.accentViolet),
-          Icon(Icons.disc_full_rounded, size: 16, color: Color(0xFFFFC107)),
-          Icon(Icons.album_rounded, size: 22, color: AppTheme.textPrimary),
-          Icon(Icons.disc_full_rounded, size: 16, color: Color(0xFFFFC107)),
           Icon(Icons.trip_origin_rounded, size: 18, color: AppTheme.accentViolet),
+          Icon(Icons.disc_full_rounded, size: 14, color: Color(0xFFFFC107)),
+          Icon(Icons.album_rounded, size: 20, color: AppTheme.textPrimary),
+          Icon(Icons.disc_full_rounded, size: 14, color: Color(0xFFFFC107)),
         ],
       ),
     );
@@ -219,30 +268,30 @@ class InstrumentSelectionScreen extends StatelessWidget {
 
   Widget _buildXylophonePreview() {
     final colors = [
-      const Color(0xFFB71C1C),
-      const Color(0xFFD35400),
-      const Color(0xFFD4AC0D),
-      const Color(0xFF1B5E20),
-      const Color(0xFF00695C),
-      const Color(0xFF0D47A1),
-      const Color(0xFF4A148C),
+      const Color(0xFFE53935),
+      const Color(0xFFFB8C00),
+      const Color(0xFFFDD835),
+      const Color(0xFF43A047),
+      const Color(0xFF00ACC1),
+      const Color(0xFF1E88E5),
+      const Color(0xFF8E24AA),
     ];
 
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
         color: const Color(0xFF0F141F),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF222B3A)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final c in colors)
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                margin: const EdgeInsets.symmetric(horizontal: 1),
                 decoration: BoxDecoration(
                   color: c,
                   borderRadius: BorderRadius.circular(3),
@@ -256,27 +305,51 @@ class InstrumentSelectionScreen extends StatelessWidget {
 
   Widget _buildPianoPreview() {
     return Container(
-      height: 48,
+      height: 44,
       decoration: BoxDecoration(
         color: const Color(0xFF0F141F),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF222B3A)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: List.generate(
-          10,
+          8,
           (i) => Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 1),
               decoration: BoxDecoration(
-                color: i % 2 == 1 ? const Color(0xFF283446) : const Color(0xFF1A2230),
+                color: i % 2 == 1 ? const Color(0xFF334155) : const Color(0xFFF8FAFC),
                 borderRadius: const BorderRadius.vertical(bottom: Radius.circular(2)),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPadPreview() {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F141F),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF222B3A)),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: GridView.count(
+        crossAxisCount: 4,
+        mainAxisSpacing: 3,
+        crossAxisSpacing: 3,
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          Icon(Icons.trip_origin_rounded, size: 12, color: Color(0xFFE53935)),
+          Icon(Icons.album_rounded, size: 12, color: Color(0xFFFB8C00)),
+          Icon(Icons.pan_tool_rounded, size: 12, color: Color(0xFFFDD835)),
+          Icon(Icons.disc_full_rounded, size: 12, color: Color(0xFF43A047)),
+        ],
       ),
     );
   }

@@ -62,11 +62,9 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initializeApp() async {
     // Preload all 16 instrument WAV sound assets (drums + xylophone) into native SoundPool
     try {
-      await _audioService
-          .initialize(AudioAssetRegistry.allPaths)
-          .timeout(const Duration(milliseconds: 1200));
+      await _audioService.initialize(AudioAssetRegistry.allPaths);
     } catch (_) {
-      // Non-blocking: continue even if audio initialization times out
+      // Non-blocking: continue even if audio initialization encounters network/system issues
     }
 
     // Ensure minimum animation presentation time before smooth navigation

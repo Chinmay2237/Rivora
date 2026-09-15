@@ -55,13 +55,17 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
     final isNative = widget.audioService.isNativeAvailable;
     final totalPlays = widget.audioService.totalPlayCount;
     final successPlays = widget.audioService.successfulPlayCount;
-    final failedPlays = widget.audioService.failedPlayCount;
     final lastLatency = widget.audioService.lastMeasuredLatencyMs;
     final lastStreamId = widget.audioService.lastStreamId;
     final lastError = widget.audioService.lastErrorMessage;
+    final lastRequested = widget.audioService.lastRequestedSound;
+
+    final readyCount = (_nativeState?['readyCount'] as int?) ?? 0;
+    final failedCount = (_nativeState?['failedCount'] as int?) ?? 0;
+    final totalPreloaded = (_nativeState?['totalPreloaded'] as int?) ?? 0;
 
     final allAssets = [
-      // Drums
+      // Drums (9)
       {'name': 'Kick', 'asset': AssetPaths.soundKick},
       {'name': 'Snare', 'asset': AssetPaths.soundSnare},
       {'name': 'Tom 1', 'asset': AssetPaths.soundTom1},
@@ -71,7 +75,7 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
       {'name': 'Crash', 'asset': AssetPaths.soundCrash},
       {'name': 'Ride', 'asset': AssetPaths.soundRide},
       {'name': 'Splash', 'asset': AssetPaths.soundSplash},
-      // Xylophone
+      // Xylophone (7)
       {'name': 'Xylo C', 'asset': AssetPaths.xyloNote(1)},
       {'name': 'Xylo D', 'asset': AssetPaths.xyloNote(2)},
       {'name': 'Xylo E', 'asset': AssetPaths.xyloNote(3)},
@@ -85,7 +89,7 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
       backgroundColor: AppTheme.surfacePrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 520),
+        constraints: const BoxConstraints(maxWidth: 660, maxHeight: 540),
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,27 +118,31 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
             ),
             const Divider(color: AppTheme.surfaceSecondary, height: 20),
 
-            // Engine Status Badges
-            Row(
+            // Status Badges Row 1
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 _StatusBadge(
                   label: 'Engine',
                   value: isNative ? 'Native SoundPool' : 'AudioPlayer Fallback',
                   isSuccess: isNative,
                 ),
-                const SizedBox(width: 8),
                 _StatusBadge(
-                  label: 'Latency',
+                  label: 'Native Ready',
+                  value: '$readyCount / 16',
+                  isSuccess: readyCount == 16,
+                ),
+                _StatusBadge(
+                  label: 'Failed Assets',
+                  value: '$failedCount',
+                  isSuccess: failedCount == 0,
+                ),
+                _StatusBadge(
+                  label: 'Method Latency',
                   value: '${lastLatency.toStringAsFixed(2)} ms',
                   isSuccess: lastLatency < 10,
                 ),
-                const SizedBox(width: 8),
-                _StatusBadge(
-                  label: 'Plays',
-                  value: '$successPlays / $totalPlays',
-                  isSuccess: failedPlays == 0,
-                ),
-                const SizedBox(width: 8),
                 _StatusBadge(
                   label: 'Last StreamID',
                   value: lastStreamId > 0 ? '#$lastStreamId' : 'None',
@@ -143,8 +151,19 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
               ],
             ),
 
+            const SizedBox(height: 10),
+
+            // Metadata / Tracing Info
+            Text(
+              'Last Requested: ${lastRequested.isEmpty ? "None" : lastRequested} | Successful Plays: $successPlays / $totalPlays',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 11,
+              ),
+            ),
+
             if (lastError != 'None') ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 'Last Error: $lastError',
                 style: const TextStyle(
@@ -157,7 +176,7 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
 
             const SizedBox(height: 14),
             const Text(
-              'Direct Test Sound Triggers (Manual Hardware Verification):',
+              'Direct Test Sound Triggers (Manual Sound Pool Verification):',
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 fontSize: 13,
@@ -232,7 +251,7 @@ class _AudioDiagnosticDialogState extends State<AudioDiagnosticDialog> {
                   )
                 else
                   Text(
-                    'Native ready: ${_nativeState?['readyCount'] ?? 0} / ${_nativeState?['totalPreloaded'] ?? 0}',
+                    'Preloaded $totalPreloaded / 16 canonical assets',
                     style: const TextStyle(
                       color: AppTheme.textSecondary,
                       fontSize: 12,

@@ -19,7 +19,7 @@ abstract class AssetPaths {
   static const String drumSplash = 'assets/images/drum_kit/splash.png';
   static const String drumKickPedal = 'assets/images/drum_kit/kick_pedal.png';
 
-  // Drum Sounds (Relative to AssetSource root 'assets/')
+  // Drum Sounds (9)
   static const String soundKick = 'sounds/drum_kit/kick.wav';
   static const String soundSnare = 'sounds/drum_kit/snare.wav';
   static const String soundTom1 = 'sounds/drum_kit/tom_1.wav';
@@ -30,7 +30,20 @@ abstract class AssetPaths {
   static const String soundRide = 'sounds/drum_kit/ride.wav';
   static const String soundSplash = 'sounds/drum_kit/splash.wav';
 
-  // Xylophone Sounds
+  // Xylophone Sounds (7)
   static String xyloNote(int noteNumber) =>
       'sounds/xylophone/note$noteNumber.wav';
+
+  // Piano Sounds (13)
+  static String pianoNote(String noteKey) => 'sounds/piano/$noteKey.wav';
+
+  // Electronic Pad Sounds (8)
+  static const String padKick = 'sounds/pad/elec_kick.wav';
+  static const String padSnare = 'sounds/pad/elec_snare.wav';
+  static const String padClap = 'sounds/pad/elec_clap.wav';
+  static const String padHiHatClosed = 'sounds/pad/elec_hihat_closed.wav';
+  static const String padHiHatOpen = 'sounds/pad/elec_hihat_open.wav';
+  static const String padTom = 'sounds/pad/elec_tom.wav';
+  static const String padSynthHit = 'sounds/pad/elec_synth_hit.wav';
+  static const String padRim = 'sounds/pad/elec_rim.wav';
 }

@@ -3,6 +3,8 @@ import '../features/splash/presentation/splash_screen.dart';
 import '../features/instrument_selection/presentation/instrument_selection_screen.dart';
 import '../features/drum_kit/presentation/drum_kit_screen.dart';
 import '../features/xylophone/presentation/xylophone_screen.dart';
+import '../features/piano/presentation/piano_screen.dart';
+import '../features/electronic_pad/presentation/electronic_pad_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 
 abstract class AppRouter {
@@ -10,6 +12,8 @@ abstract class AppRouter {
   static const String home = '/';
   static const String drumKit = '/drum_kit';
   static const String xylophone = '/xylophone';
+  static const String piano = '/piano';
+  static const String electronicPad = '/electronic_pad';
   static const String settings = '/settings';
 
   static Map<String, WidgetBuilder> get routes => {
@@ -17,6 +21,8 @@ abstract class AppRouter {
         home: (_) => const InstrumentSelectionScreen(),
         drumKit: (_) => const DrumKitScreen(),
         xylophone: (_) => const XylophoneScreen(),
+        piano: (_) => const PianoScreen(),
+        electronicPad: (_) => const ElectronicPadScreen(),
         settings: (_) => const SettingsScreen(),
       };
 
@@ -30,6 +36,10 @@ abstract class AppRouter {
         return _buildRoute(const DrumKitScreen(), routeSettings);
       case xylophone:
         return _buildRoute(const XylophoneScreen(), routeSettings);
+      case piano:
+        return _buildRoute(const PianoScreen(), routeSettings);
+      case electronicPad:
+        return _buildRoute(const ElectronicPadScreen(), routeSettings);
       case settings:
         return _buildRoute(const SettingsScreen(), routeSettings);
       default:

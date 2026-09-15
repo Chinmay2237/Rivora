@@ -6,6 +6,7 @@ import 'package:rivora/features/instrument_selection/presentation/instrument_sel
 import 'package:rivora/features/settings/presentation/settings_screen.dart';
 import 'package:rivora/core/responsive/landscape_guard.dart';
 import 'package:rivora/core/constants/rivora_colors.dart';
+import 'package:rivora/core/constants/audio_asset_registry.dart';
 import 'package:rivora/app/app_theme.dart';
 import 'package:rivora/app/app_router.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +16,34 @@ void main() {
 
   group('RivoraColors & Theme Tests', () {
     test('RivoraColors values match brand color specification', () {
-      expect(RivoraColors.background, const Color(0xFF0B1026));
-      expect(RivoraColors.primary, const Color(0xFF8B5CF6));
-      expect(RivoraColors.lavender, const Color(0xFFC4B5FD));
-      expect(RivoraColors.textPrimary, const Color(0xFFF8FAFC));
+      expect(RivoraColors.background, const Color(0xFF0B0D14));
+      expect(RivoraColors.primary, const Color(0xFF9B6CFF));
+      expect(RivoraColors.textPrimary, const Color(0xFFF5F7FB));
+    });
+  });
+
+  group('AudioAssetRegistry Tests', () {
+    test('Canonical registry registers all 37 audio assets', () {
+      final allAssets = AudioAssetRegistry.allAssets;
+      expect(allAssets.length, 37);
+
+      final drumAssets =
+          allAssets.where((a) => a.category == AudioCategory.drum).toList();
+      expect(drumAssets.length, 9);
+
+      final xyloAssets = allAssets
+          .where((a) => a.category == AudioCategory.xylophone)
+          .toList();
+      expect(xyloAssets.length, 7);
+
+      final pianoAssets =
+          allAssets.where((a) => a.category == AudioCategory.piano).toList();
+      expect(pianoAssets.length, 13);
+
+      final padAssets = allAssets
+          .where((a) => a.category == AudioCategory.electronicPad)
+          .toList();
+      expect(padAssets.length, 8);
     });
   });
 
@@ -98,9 +123,10 @@ void main() {
       tester.view.resetPhysicalSize();
     });
 
-    testWidgets('InstrumentSelectionScreen renders Rivora title and cards',
+    testWidgets(
+        'InstrumentSelectionScreen renders studio title and 4 instrument cards',
         (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1000, 600);
+      tester.view.physicalSize = const Size(1200, 600);
       tester.view.devicePixelRatio = 1.0;
 
       await tester.pumpWidget(
@@ -111,9 +137,11 @@ void main() {
       );
 
       expect(find.text('Rivora'), findsOneWidget);
-      expect(find.text('Your instruments'), findsOneWidget);
-      expect(find.text('Interactive Drum Kit'), findsOneWidget);
+      expect(find.text('Make some music'), findsOneWidget);
+      expect(find.text('Acoustic Drum Kit'), findsOneWidget);
       expect(find.text('Acoustic Xylophone'), findsOneWidget);
+      expect(find.text('Grand Piano'), findsOneWidget);
+      expect(find.text('Electronic Drum Pad'), findsOneWidget);
 
       tester.view.resetPhysicalSize();
     });

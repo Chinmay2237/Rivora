@@ -14,9 +14,11 @@ import io.flutter.plugin.common.MethodChannel;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +30,7 @@ public class MainActivity extends FlutterActivity {
     private final Map<String, Integer> soundMap = Collections.synchronizedMap(new HashMap<>());
     private final Map<Integer, String> sampleIdToAssetMap = Collections.synchronizedMap(new HashMap<>());
     private final Set<Integer> readySampleIds = Collections.synchronizedSet(new HashSet<>());
+    private final Set<Integer> failedSampleIds = Collections.synchronizedSet(new HashSet<>());
     private float globalVolume = 1.0f;
 
     @Override
@@ -48,8 +51,11 @@ public class MainActivity extends FlutterActivity {
             String asset = sampleIdToAssetMap.get(sampleId);
             if (status == 0) {
                 readySampleIds.add(sampleId);
-                Log.d(TAG, "[SoundPool OnLoadComplete] Sample ready! soundId: " + sampleId + " asset: " + asset);
+                failedSampleIds.remove(sampleId);
+                Log.d(TAG, "[SoundPool OnLoadComplete SUCCESS] Sample ready! soundId: " + sampleId + " asset: " + asset);
             } else {
+                failedSampleIds.add(sampleId);
+                readySampleIds.remove(sampleId);
                 Log.e(TAG, "[SoundPool OnLoadComplete ERROR] Sample load FAILED! soundId: " + sampleId + " status: " + status + " asset: " + asset);
             }
         });
@@ -59,6 +65,9 @@ public class MainActivity extends FlutterActivity {
                     switch (call.method) {
                         case "preload":
                             handlePreload(call, result);
+                            break;
+                        case "preloadAll":
+                            handlePreloadAll(call, result);
                             break;
                         case "play":
                             handlePlay(call, result);
@@ -79,16 +88,9 @@ public class MainActivity extends FlutterActivity {
                 });
     }
 
-    private void handlePreload(MethodCall call, MethodChannel.Result result) {
-        String assetPath = call.argument("assetPath");
-        if (assetPath == null) {
-            result.error("INVALID_ARGUMENT", "assetPath is null", null);
-            return;
-        }
-
+    private int loadSingleAsset(String assetPath) {
         if (soundMap.containsKey(assetPath)) {
-            result.success(soundMap.get(assetPath));
-            return;
+            return soundMap.get(assetPath);
         }
 
         String flutterKey = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(assetPath);
@@ -108,11 +110,12 @@ public class MainActivity extends FlutterActivity {
                 AssetFileDescriptor afd = getAssets().openFd(key);
                 int soundId = soundPool.load(afd, 1);
                 afd.close();
-                soundMap.put(assetPath, soundId);
-                sampleIdToAssetMap.put(soundId, assetPath);
-                Log.d(TAG, "Preloaded asset via openFd: " + assetPath + " (key: " + key + ") -> soundId: " + soundId);
-                result.success(soundId);
-                return;
+                if (soundId > 0) {
+                    soundMap.put(assetPath, soundId);
+                    sampleIdToAssetMap.put(soundId, assetPath);
+                    Log.d(TAG, "Preloaded asset via openFd: " + assetPath + " (key: " + key + ") -> soundId: " + soundId);
+                    return soundId;
+                }
             } catch (Exception ignored) {
             }
         }
@@ -139,17 +142,48 @@ public class MainActivity extends FlutterActivity {
                 }
 
                 int soundId = soundPool.load(cacheFile.getAbsolutePath(), 1);
-                soundMap.put(assetPath, soundId);
-                sampleIdToAssetMap.put(soundId, assetPath);
-                Log.d(TAG, "Preloaded asset via File Cache: " + assetPath + " (" + cacheFile.getAbsolutePath() + ") -> soundId: " + soundId);
-                result.success(soundId);
-                return;
+                if (soundId > 0) {
+                    soundMap.put(assetPath, soundId);
+                    sampleIdToAssetMap.put(soundId, assetPath);
+                    Log.d(TAG, "Preloaded asset via File Cache: " + assetPath + " (" + cacheFile.getAbsolutePath() + ") -> soundId: " + soundId);
+                    return soundId;
+                }
             } catch (Exception ignored) {
             }
         }
 
         Log.e(TAG, "Failed to load asset after all attempts: " + assetPath);
-        result.error("LOAD_ERROR", "Could not load asset file: " + assetPath, null);
+        return 0;
+    }
+
+    private void handlePreload(MethodCall call, MethodChannel.Result result) {
+        String assetPath = call.argument("assetPath");
+        if (assetPath == null) {
+            result.error("INVALID_ARGUMENT", "assetPath is null", null);
+            return;
+        }
+
+        int soundId = loadSingleAsset(assetPath);
+        if (soundId > 0) {
+            result.success(soundId);
+        } else {
+            result.error("LOAD_ERROR", "Could not load asset file: " + assetPath, null);
+        }
+    }
+
+    private void handlePreloadAll(MethodCall call, MethodChannel.Result result) {
+        List<String> assetPaths = call.argument("assetPaths");
+        if (assetPaths == null || assetPaths.isEmpty()) {
+            result.error("INVALID_ARGUMENT", "assetPaths is null or empty", null);
+            return;
+        }
+
+        Map<String, Integer> resultMap = new HashMap<>();
+        for (String path : assetPaths) {
+            int soundId = loadSingleAsset(path);
+            resultMap.put(path, soundId);
+        }
+        result.success(resultMap);
     }
 
     private void handlePlay(MethodCall call, MethodChannel.Result result) {
@@ -165,6 +199,11 @@ public class MainActivity extends FlutterActivity {
         Integer soundId = soundMap.get(assetPath);
         if (soundId == null || soundId <= 0) {
             result.error("NOT_FOUND", "Sound not preloaded: " + assetPath, null);
+            return;
+        }
+
+        if (failedSampleIds.contains(soundId)) {
+            result.error("LOAD_FAILED", "Native SoundPool failed to decode: " + assetPath, null);
             return;
         }
 
@@ -207,6 +246,7 @@ public class MainActivity extends FlutterActivity {
         diag.put("soundPoolInitialized", soundPool != null);
         diag.put("totalPreloaded", soundMap.size());
         diag.put("readyCount", readySampleIds.size());
+        diag.put("failedCount", failedSampleIds.size());
 
         Map<String, Map<String, Object>> sampleDetails = new HashMap<>();
         for (Map.Entry<String, Integer> entry : soundMap.entrySet()) {
@@ -215,6 +255,7 @@ public class MainActivity extends FlutterActivity {
             Map<String, Object> sampleInfo = new HashMap<>();
             sampleInfo.put("soundId", soundId);
             sampleInfo.put("isReady", readySampleIds.contains(soundId));
+            sampleInfo.put("isFailed", failedSampleIds.contains(soundId));
             sampleDetails.put(asset, sampleInfo);
         }
         diag.put("samples", sampleDetails);
@@ -230,6 +271,7 @@ public class MainActivity extends FlutterActivity {
         soundMap.clear();
         sampleIdToAssetMap.clear();
         readySampleIds.clear();
+        failedSampleIds.clear();
         super.onDestroy();
     }
 }

@@ -30,7 +30,7 @@ class DrumComponentModel {
   });
 
   static List<DrumComponentModel> get defaultComponents => const [
-        // 1. Bass Drum (Kick) - Main center-low anchor (enlarged visual scale)
+        // 1. Bass Drum (Kick) - Large centered anchor in lower-middle stage
         DrumComponentModel(
           id: 'bass_drum',
           name: 'Bass Drum (Kick)',
@@ -38,13 +38,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumBass,
           soundAsset: AssetPaths.soundKick,
           soundName: 'kick.wav',
-          relativeLeft: 0.24,
-          relativeTop: 0.30,
-          relativeWidth: 0.52,
-          relativeHeight: 0.68,
+          relativeLeft: 0.28,
+          relativeTop: 0.32,
+          relativeWidth: 0.44,
+          relativeHeight: 0.60,
           zIndex: 2,
         ),
-        // 2. Kick Pedal - Placed center-bottom in front of kick (enlarged visual scale)
+        // 2. Kick Pedal - Center-bottom in front of Kick drum
         DrumComponentModel(
           id: 'kick_pedal',
           name: 'Kick Pedal',
@@ -52,13 +52,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumKickPedal,
           soundAsset: AssetPaths.soundKick,
           soundName: 'kick.wav',
-          relativeLeft: 0.41,
-          relativeTop: 0.70,
-          relativeWidth: 0.18,
-          relativeHeight: 0.28,
+          relativeLeft: 0.42,
+          relativeTop: 0.72,
+          relativeWidth: 0.16,
+          relativeHeight: 0.24,
           zIndex: 4,
         ),
-        // 3. Small Rack Tom (Tom 1) - Mounted top-left of Kick (enlarged visual scale)
+        // 3. Small Rack Tom (Tom 1) - Mounted top-left above Kick drum
         DrumComponentModel(
           id: 'rack_tom_small',
           name: 'Rack Tom 1',
@@ -66,13 +66,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumTomSmall,
           soundAsset: AssetPaths.soundTom1,
           soundName: 'tom_1.wav',
-          relativeLeft: 0.22,
-          relativeTop: 0.08,
-          relativeWidth: 0.30,
-          relativeHeight: 0.38,
+          relativeLeft: 0.28,
+          relativeTop: 0.12,
+          relativeWidth: 0.22,
+          relativeHeight: 0.32,
           zIndex: 3,
         ),
-        // 4. Large Rack Tom (Tom 2) - Mounted top-right of Kick (enlarged visual scale)
+        // 4. Large Rack Tom (Tom 2) - Mounted top-right above Kick drum
         DrumComponentModel(
           id: 'rack_tom_large',
           name: 'Rack Tom 2',
@@ -80,13 +80,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumTomLarge,
           soundAsset: AssetPaths.soundTom2,
           soundName: 'tom_2.wav',
-          relativeLeft: 0.47,
-          relativeTop: 0.08,
-          relativeWidth: 0.31,
-          relativeHeight: 0.40,
+          relativeLeft: 0.50,
+          relativeTop: 0.12,
+          relativeWidth: 0.23,
+          relativeHeight: 0.34,
           zIndex: 3,
         ),
-        // 5. Snare Drum - Left of Kick (enlarged visual scale)
+        // 5. Snare Drum - Left foreground, close to drummer
         DrumComponentModel(
           id: 'snare',
           name: 'Snare Drum',
@@ -94,13 +94,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumSnare,
           soundAsset: AssetPaths.soundSnare,
           soundName: 'snare.wav',
-          relativeLeft: 0.04,
-          relativeTop: 0.36,
-          relativeWidth: 0.38,
-          relativeHeight: 0.48,
+          relativeLeft: 0.08,
+          relativeTop: 0.46,
+          relativeWidth: 0.30,
+          relativeHeight: 0.42,
           zIndex: 4,
         ),
-        // 6. Floor Tom - Right of Kick (enlarged visual scale)
+        // 6. Floor Tom - Right foreground, wide and grounded
         DrumComponentModel(
           id: 'floor_tom',
           name: 'Floor Tom',
@@ -108,13 +108,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumFloorTom,
           soundAsset: AssetPaths.soundFloorTom,
           soundName: 'floor_tom.wav',
-          relativeLeft: 0.56,
-          relativeTop: 0.34,
-          relativeWidth: 0.40,
-          relativeHeight: 0.52,
+          relativeLeft: 0.64,
+          relativeTop: 0.44,
+          relativeWidth: 0.32,
+          relativeHeight: 0.46,
           zIndex: 4,
         ),
-        // 7. Hi-Hat - Left side above-left of snare (enlarged visual scale)
+        // 7. Hi-Hat Cymbals - Left side elevated above Snare
         DrumComponentModel(
           id: 'hi_hat',
           name: 'Hi-Hat Cymbals',
@@ -122,13 +122,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumHiHat,
           soundAsset: AssetPaths.soundHiHat,
           soundName: 'hihat.wav',
-          relativeLeft: 0.00,
-          relativeTop: 0.10,
-          relativeWidth: 0.36,
-          relativeHeight: 0.48,
+          relativeLeft: 0.02,
+          relativeTop: 0.18,
+          relativeWidth: 0.26,
+          relativeHeight: 0.38,
           zIndex: 5,
         ),
-        // 8. Crash Cymbal - Upper-left cymbal (enlarged visual scale)
+        // 8. Crash Cymbal - Upper-left elevated cymbal
         DrumComponentModel(
           id: 'crash',
           name: 'Crash Cymbal',
@@ -136,13 +136,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumCrash,
           soundAsset: AssetPaths.soundCrash,
           soundName: 'crash.wav',
-          relativeLeft: 0.00,
+          relativeLeft: 0.02,
           relativeTop: 0.00,
-          relativeWidth: 0.42,
-          relativeHeight: 0.44,
+          relativeWidth: 0.32,
+          relativeHeight: 0.32,
           zIndex: 5,
         ),
-        // 9. Splash Cymbal - Top-center cymbal (enlarged visual scale)
+        // 9. Splash Cymbal - Top-center accent cymbal
         DrumComponentModel(
           id: 'splash',
           name: 'Splash Cymbal',
@@ -150,13 +150,13 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumSplash,
           soundAsset: AssetPaths.soundSplash,
           soundName: 'splash.wav',
-          relativeLeft: 0.375,
+          relativeLeft: 0.41,
           relativeTop: 0.00,
-          relativeWidth: 0.25,
-          relativeHeight: 0.28,
+          relativeWidth: 0.18,
+          relativeHeight: 0.22,
           zIndex: 5,
         ),
-        // 10. Ride Cymbal - Upper-right cymbal (enlarged visual scale)
+        // 10. Ride Cymbal - Upper-right elevated cymbal
         DrumComponentModel(
           id: 'ride',
           name: 'Ride Cymbal',
@@ -164,10 +164,10 @@ class DrumComponentModel {
           imageAsset: AssetPaths.drumRide,
           soundAsset: AssetPaths.soundRide,
           soundName: 'ride.wav',
-          relativeLeft: 0.56,
+          relativeLeft: 0.66,
           relativeTop: 0.00,
-          relativeWidth: 0.44,
-          relativeHeight: 0.46,
+          relativeWidth: 0.32,
+          relativeHeight: 0.34,
           zIndex: 5,
         ),
       ];

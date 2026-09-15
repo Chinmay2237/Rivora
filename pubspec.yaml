@@ -28,4 +28,6 @@ flutter:
     - assets/images/drum_kit/
     - assets/sounds/drum_kit/
     - assets/sounds/xylophone/
+    - assets/sounds/piano/
+    - assets/sounds/pad/
 
