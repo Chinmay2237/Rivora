@@ -37,6 +37,14 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    aaptOptions {
+        noCompress "wav"
+    }
+
+    androidResources {
+        noCompress += "wav"
+    }
 }
 
 flutter {

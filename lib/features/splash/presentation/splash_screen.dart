@@ -3,7 +3,7 @@ import '../../../app/app_router.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/rivora_colors.dart';
 import '../../../services/drum_audio_service.dart';
-import '../../../models/drum_component_model.dart';
+import '../../../core/constants/audio_asset_registry.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -60,17 +60,13 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initializeApp() async {
-    // Attempt audio pre-initialization safely with a strict 1000ms timeout
+    // Preload all 16 instrument WAV sound assets (drums + xylophone) into native SoundPool
     try {
-      final soundAssets = DrumComponentModel.defaultComponents
-          .map((c) => c.soundAsset)
-          .toSet()
-          .toList();
       await _audioService
-          .initialize(soundAssets)
-          .timeout(const Duration(milliseconds: 900));
+          .initialize(AudioAssetRegistry.allPaths)
+          .timeout(const Duration(milliseconds: 1200));
     } catch (_) {
-      // Non-blocking: continue even if audio initialization fails or times out
+      // Non-blocking: continue even if audio initialization times out
     }
 
     // Ensure minimum animation presentation time before smooth navigation

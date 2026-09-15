@@ -111,7 +111,7 @@ void main() {
       );
 
       expect(find.text('Rivora'), findsOneWidget);
-      expect(find.text('Play. Create. Explore.'), findsOneWidget);
+      expect(find.text('Your instruments'), findsOneWidget);
       expect(find.text('Interactive Drum Kit'), findsOneWidget);
       expect(find.text('Acoustic Xylophone'), findsOneWidget);
 

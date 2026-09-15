@@ -21,12 +21,16 @@ class _DrumComponentWidgetState extends State<DrumComponentWidget> {
   bool _isPressed = false;
 
   void _onPointerDown() {
+    final nowMs = DateTime.now().millisecondsSinceEpoch.toDouble();
     if (!_isPressed) {
       setState(() {
         _isPressed = true;
       });
     }
-    widget.audioService.playSound(widget.component.soundAsset);
+    widget.audioService.playSound(
+      widget.component.soundAsset,
+      pointerDownMs: nowMs,
+    );
   }
 
   void _onPointerUp() {
@@ -53,28 +57,21 @@ class _DrumComponentWidgetState extends State<DrumComponentWidget> {
           onPointerCancel: (_) => _onPointerUp(),
           child: RepaintBoundary(
             child: AnimatedScale(
-              scale: _isPressed ? 0.92 : 1.0,
+              scale: _isPressed ? 0.96 : 1.0,
               duration: AppTheme.fastAnimation,
               curve: Curves.easeOutCubic,
-              child: AnimatedContainer(
+              child: AnimatedOpacity(
                 duration: AppTheme.fastAnimation,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: _isPressed
-                      ? [
-                          BoxShadow(
-                            color:
-                                const Color(0xFFFFD700).withValues(alpha: 0.65),
-                            blurRadius: 22,
-                            spreadRadius: 4,
-                          ),
-                        ]
-                      : const [],
-                ),
-                child: Image.asset(
-                  widget.component.imageAsset,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.medium,
+                opacity: _isPressed ? 0.88 : 1.0,
+                child: SizedBox.expand(
+                  child: Transform.scale(
+                    scale: 1.22,
+                    child: Image.asset(
+                      widget.component.imageAsset,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
                 ),
               ),
             ),

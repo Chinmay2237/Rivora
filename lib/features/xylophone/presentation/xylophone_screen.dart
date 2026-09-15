@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../../../app/app_theme.dart';
 import '../../../core/constants/asset_paths.dart';
+import '../../../core/constants/audio_asset_registry.dart';
+import '../../../services/drum_audio_service.dart';
+import '../../../widgets/audio_diagnostic_dialog.dart';
 
 class XylophoneScreen extends StatefulWidget {
   const XylophoneScreen({super.key});
@@ -11,47 +13,38 @@ class XylophoneScreen extends StatefulWidget {
 }
 
 class _XylophoneScreenState extends State<XylophoneScreen> {
-  final List<AudioPlayer> _players = [];
+  final DrumAudioService _audioService = DrumAudioService();
+  bool _isLoading = true;
+
   final List<_XyloNote> _notes = const [
-    _XyloNote(color: Color(0xFFFF5252), soundNumber: 1, name: 'C', label: 'Do'),
-    _XyloNote(color: Color(0xFFFF7A00), soundNumber: 2, name: 'D', label: 'Re'),
-    _XyloNote(color: Color(0xFFFFD600), soundNumber: 3, name: 'E', label: 'Mi'),
-    _XyloNote(color: Color(0xFF00E676), soundNumber: 4, name: 'F', label: 'Fa'),
-    _XyloNote(
-        color: Color(0xFF00B0FF), soundNumber: 5, name: 'G', label: 'Sol'),
-    _XyloNote(color: Color(0xFF651FFF), soundNumber: 6, name: 'A', label: 'La'),
-    _XyloNote(color: Color(0xFFAA00FF), soundNumber: 7, name: 'B', label: 'Si'),
+    _XyloNote(color: Color(0xFFB71C1C), soundNumber: 1, name: 'C', label: 'Do'),
+    _XyloNote(color: Color(0xFFD35400), soundNumber: 2, name: 'D', label: 'Re'),
+    _XyloNote(color: Color(0xFFD4AC0D), soundNumber: 3, name: 'E', label: 'Mi'),
+    _XyloNote(color: Color(0xFF1B5E20), soundNumber: 4, name: 'F', label: 'Fa'),
+    _XyloNote(color: Color(0xFF00695C), soundNumber: 5, name: 'G', label: 'Sol'),
+    _XyloNote(color: Color(0xFF0D47A1), soundNumber: 6, name: 'A', label: 'La'),
+    _XyloNote(color: Color(0xFF4A148C), soundNumber: 7, name: 'B', label: 'Si'),
   ];
 
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < _notes.length; i++) {
-      final player = AudioPlayer();
-      player.setPlayerMode(PlayerMode.lowLatency).catchError((_) {});
-      _players.add(player);
+    _initAudio();
+  }
+
+  Future<void> _initAudio() async {
+    await _audioService.initialize(AudioAssetRegistry.allPaths);
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  @override
-  void dispose() {
-    for (final player in _players) {
-      player.dispose().catchError((_) {});
-    }
-    super.dispose();
-  }
-
-  Future<void> _playSound(int index, int soundNumber) async {
-    if (index < 0 || index >= _players.length) return;
-    final player = _players[index];
-    try {
-      await player.stop();
-      await player.play(AssetSource(AssetPaths.xyloNote(soundNumber)));
-    } catch (_) {
-      try {
-        await player.play(AssetSource('note$soundNumber.wav'));
-      } catch (_) {}
-    }
+  void _playSound(int soundNumber) {
+    final nowMs = DateTime.now().millisecondsSinceEpoch.toDouble();
+    final path = AssetPaths.xyloNote(soundNumber);
+    _audioService.playSound(path, pointerDownMs: nowMs);
   }
 
   @override
@@ -64,8 +57,8 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
           children: [
             Image.asset(
               AssetPaths.rivoraSymbol,
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) =>
                   const SizedBox.shrink(),
@@ -73,7 +66,7 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
             const SizedBox(width: 8),
             const Text(
               'Acoustic Xylophone',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -84,40 +77,92 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
           button: true,
           label: 'Back to instrument selection',
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
             onPressed: () => Navigator.pop(context),
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.bug_report_rounded,
+              color: AppTheme.accentViolet,
+            ),
+            onPressed: () {
+              AudioDiagnosticDialog.show(context, _audioService);
+            },
+            tooltip: 'Audio Diagnostics',
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             const Text(
-              'Tap bars to play melodic notes',
+              'Tap bars to play acoustic notes',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppTheme.textSecondary,
-                fontSize: 13,
+                fontSize: 12,
                 letterSpacing: 0.5,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 0; i < _notes.length; i++)
-                      _XylophoneBar(
-                        note: _notes[i],
-                        onTap: () => _playSound(i, _notes[i].soundNumber),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.successGreen),
                       ),
-                  ],
-                ),
-              ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: Stack(
+                        children: [
+                          // Wooden Frame Support Bars Top & Bottom
+                          Positioned(
+                            top: 24,
+                            left: 0,
+                            right: 0,
+                            height: 12,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2C1E18),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFF1A120E)),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 24,
+                            left: 0,
+                            right: 0,
+                            height: 12,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2C1E18),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFF1A120E)),
+                              ),
+                            ),
+                          ),
+
+                          // 7 Xylophone Bars
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (int i = 0; i < _notes.length; i++)
+                                _XylophoneBar(
+                                  note: _notes[i],
+                                  onTap: () => _playSound(_notes[i].soundNumber),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
             ),
             const SizedBox(height: 12),
           ],
@@ -144,9 +189,11 @@ class _XylophoneBarState extends State<_XylophoneBar> {
   bool _isPressed = false;
 
   void _handleTapDown() {
-    setState(() {
-      _isPressed = true;
-    });
+    if (!_isPressed) {
+      setState(() {
+        _isPressed = true;
+      });
+    }
     widget.onTap();
   }
 
@@ -171,53 +218,78 @@ class _XylophoneBarState extends State<_XylophoneBar> {
           onPointerDown: (_) => _handleTapDown(),
           onPointerUp: (_) => _handleTapUp(),
           onPointerCancel: (_) => _handleTapUp(),
-          child: AnimatedScale(
-            scale: _isPressed ? 0.95 : 1.0,
-            duration: AppTheme.fastAnimation,
-            curve: Curves.easeOutCubic,
-            child: Container(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 6.0),
-              decoration: BoxDecoration(
-                color: widget.note.color,
-                borderRadius: BorderRadius.circular(AppTheme.buttonRadius),
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.note.color.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+          child: RepaintBoundary(
+            child: AnimatedScale(
+              scale: _isPressed ? 0.96 : 1.0,
+              duration: AppTheme.fastAnimation,
+              curve: Curves.easeOutCubic,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+                decoration: BoxDecoration(
+                  color: widget.note.color,
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1.0,
                   ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.note.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 4,
-                          color: Colors.black45,
-                          offset: Offset(1, 1),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Top Chrome Pin
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFD1D5DB),
+                      ),
+                    ),
+
+                    // Note Label (C, D, E...) and Solfège (Do, Re...)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.note.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.note.label,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  Text(
-                    widget.note.label,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+
+                    // Bottom Chrome Pin
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFD1D5DB),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

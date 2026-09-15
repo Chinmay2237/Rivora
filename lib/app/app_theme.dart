@@ -19,28 +19,28 @@ abstract class AppTheme {
   static const Color warningYellow = RivoraColors.warning;
   static const Color borderSubtle = RivoraColors.border;
 
-  // Gradients
-  static const RadialGradient backgroundGradient = RadialGradient(
-    center: Alignment(0, -0.6),
-    radius: 1.4,
+  // Clean, restrained surfaces & gradients
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF1B2040),
+      Color(0xFF131824),
       RivoraColors.background,
     ],
   );
 
-  static const RadialGradient stageGradient = RadialGradient(
-    center: Alignment(0, 0.1),
-    radius: 1.2,
+  static const LinearGradient stageGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF1E2548),
-      RivoraColors.backgroundDeep,
+      Color(0xFF121622),
+      Color(0xFF0B0E17),
     ],
   );
 
   // Constants
-  static const double cardRadius = 18.0;
-  static const double buttonRadius = 12.0;
+  static const double cardRadius = 14.0;
+  static const double buttonRadius = 10.0;
 
   static const Duration fastAnimation = Duration(milliseconds: 60);
   static const Duration normalAnimation = Duration(milliseconds: 200);

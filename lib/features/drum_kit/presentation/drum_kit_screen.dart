@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../models/drum_component_model.dart';
 import '../../../services/drum_audio_service.dart';
 import '../../../widgets/drum_component_widget.dart';
+import '../../../widgets/audio_diagnostic_dialog.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/app_constants.dart';
+import '../../../core/constants/audio_asset_registry.dart';
 
 class DrumKitScreen extends StatefulWidget {
   const DrumKitScreen({super.key});
@@ -27,9 +29,7 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
   }
 
   Future<void> _initAudio() async {
-    final soundAssets =
-        _sortedComponents.map((c) => c.soundAsset).toSet().toList();
-    await _audioService.initialize(soundAssets);
+    await _audioService.initialize(AudioAssetRegistry.allPaths);
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -68,25 +68,29 @@ class _DrumKitScreenState extends State<DrumKitScreen> {
                             decoration: const BoxDecoration(
                               gradient: AppTheme.stageGradient,
                             ),
-                            child: Stack(
-                              children: _sortedComponents.map((comp) {
-                                final left = comp.relativeLeft * stageWidth;
-                                final top = comp.relativeTop * stageHeight;
-                                final width = comp.relativeWidth * stageWidth;
-                                final height =
-                                    comp.relativeHeight * stageHeight;
+                            child: CustomPaint(
+                              painter: _AcousticStageFloorPainter(),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: _sortedComponents.map((comp) {
+                                  final left = comp.relativeLeft * stageWidth;
+                                  final top = comp.relativeTop * stageHeight;
+                                  final width = comp.relativeWidth * stageWidth;
+                                  final height =
+                                      comp.relativeHeight * stageHeight;
 
-                                return Positioned(
-                                  left: left,
-                                  top: top,
-                                  width: width,
-                                  height: height,
-                                  child: DrumComponentWidget(
-                                    component: comp,
-                                    audioService: _audioService,
-                                  ),
-                                );
-                              }).toList(),
+                                  return Positioned(
+                                    left: left,
+                                    top: top,
+                                    width: width,
+                                    height: height,
+                                    child: DrumComponentWidget(
+                                      component: comp,
+                                      audioService: _audioService,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           );
                         },
@@ -204,8 +208,51 @@ class _DrumKitToolbarState extends State<_DrumKitToolbar> {
               tooltip: 'Toggle Haptics',
             ),
           ),
+
+          // Diagnostic Tool Button
+          Semantics(
+            button: true,
+            label: 'Open Audio Diagnostics',
+            child: IconButton(
+              icon: const Icon(
+                Icons.bug_report_rounded,
+                color: AppTheme.accentViolet,
+              ),
+              onPressed: () {
+                AudioDiagnosticDialog.show(context, widget.audioService);
+              },
+              tooltip: 'Audio Diagnostics',
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+class _AcousticStageFloorPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Stage Oval Shadow / Perspective Rug Shadow
+    final rugRect = Rect.fromCenter(
+      center: Offset(size.width * 0.5, size.height * 0.68),
+      width: size.width * 0.88,
+      height: size.height * 0.58,
+    );
+
+    final rugPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF070A12).withValues(alpha: 0.9),
+          const Color(0xFF090D18).withValues(alpha: 0.5),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.65, 1.0],
+      ).createShader(rugRect);
+
+    canvas.drawOval(rugRect, rugPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
