@@ -7,8 +7,8 @@ import 'package:flutter/widgets.dart';
 /// Ultra-low latency, zero-disk-I/O polyphonic audio engine for Rivora.
 ///
 /// Uses native Android SoundPool via MethodChannel ('com.example.rivora/audio')
-/// on Android, and a preloaded AudioPlayer pool with direct AssetSource playback
-/// on other platforms (iOS/Desktop/Web). Includes high-precision timestamped tracing.
+/// on Android, with an instant preloaded AudioPlayer fallback pool for all platforms.
+/// Includes high-precision timestamped tracing and robust per-sample error recovery.
 class DrumAudioService with WidgetsBindingObserver {
   static final DrumAudioService _instance = DrumAudioService._internal();
   factory DrumAudioService() => _instance;
@@ -31,9 +31,9 @@ class DrumAudioService with WidgetsBindingObserver {
   // Native SoundPool loaded sound ID mappings (Android)
   final Map<String, int> _nativeSoundIds = {};
 
-  // AudioPlayer pool fallback for non-Android platforms
+  // AudioPlayer pool fallback for all platforms (guarantees zero silent taps)
   final List<AudioPlayer> _fallbackPool = [];
-  final int _fallbackPoolSize = 6;
+  final int _fallbackPoolSize = 8;
   int _fallbackPoolIndex = 0;
 
   Future<void>? _initFuture;
@@ -93,10 +93,8 @@ class DrumAudioService with WidgetsBindingObserver {
 
   /// Idempotent initialization loading assets into native SoundPool memory
   Future<void> initialize(List<String> soundAssets) {
-    if (_isNativeAvailable && _nativeSoundIds.length >= soundAssets.length) {
-      return Future.value();
-    }
-    _initFuture ??= _initializeInternal(soundAssets).catchError((e) {
+    if (_initFuture != null) return _initFuture!;
+    _initFuture = _initializeInternal(soundAssets).catchError((e) {
       _initFuture = null; // Clear cached future on failure so retry is possible
       throw e;
     });
@@ -108,7 +106,25 @@ class DrumAudioService with WidgetsBindingObserver {
     debugPrint(
         '[AudioEngine] Initializing audio engine for ${soundAssets.length} assets...');
 
-    // 1. Native Android SoundPool Preloading
+    // 1. Initialize Fallback AudioPlayer Pool for instantaneous backup playback
+    if (_fallbackPool.isEmpty) {
+      for (int i = 0; i < _fallbackPoolSize; i++) {
+        try {
+          final player = AudioPlayer();
+          await player.setPlayerMode(PlayerMode.lowLatency);
+          await player.setVolume(_volume);
+          _fallbackPool.add(player);
+        } catch (_) {
+          final fallbackPlayer = AudioPlayer();
+          await fallbackPlayer.setVolume(_volume);
+          _fallbackPool.add(fallbackPlayer);
+        }
+      }
+      debugPrint(
+          '[AudioEngine Fallback] Pre-created ${_fallbackPool.length} AudioPlayers');
+    }
+
+    // 2. Native Android SoundPool Preloading
     if (defaultTargetPlatform == TargetPlatform.android) {
       try {
         final Map<dynamic, dynamic>? res = await _nativeChannel
@@ -128,7 +144,7 @@ class DrumAudioService with WidgetsBindingObserver {
 
         // Wait for native OnLoadCompleteListener to confirm sample readiness
         int readyCount = 0;
-        for (int attempt = 0; attempt < 15; attempt++) {
+        for (int attempt = 0; attempt < 25; attempt++) {
           final diag = await getNativeDiagnosticState();
           readyCount = (diag['readyCount'] as int?) ?? 0;
           if (readyCount >= _nativeSoundIds.length && readyCount > 0) {
@@ -143,7 +159,7 @@ class DrumAudioService with WidgetsBindingObserver {
           debugPrint(
               '[AudioEngine Native SUCCESS] Native SoundPool active with $readyCount ready samples!');
         } else {
-          _lastErrorMessage = 'Native samples not ready (readyCount: $readyCount)';
+          _lastErrorMessage = 'Native samples count ($readyCount) below target (${soundAssets.length})';
           debugPrint('[AudioEngine Native WARNING] $_lastErrorMessage');
         }
       } catch (e) {
@@ -152,26 +168,6 @@ class DrumAudioService with WidgetsBindingObserver {
         _isNativeAvailable = false;
         _lastErrorMessage = 'Native initialization failed: $e';
       }
-    }
-
-    // 2. Initialize Fallback AudioPlayer Pool ONLY for non-Android platforms
-    if (!_isNativeAvailable &&
-        defaultTargetPlatform != TargetPlatform.android &&
-        _fallbackPool.isEmpty) {
-      for (int i = 0; i < _fallbackPoolSize; i++) {
-        try {
-          final player = AudioPlayer();
-          await player.setPlayerMode(PlayerMode.lowLatency);
-          await player.setVolume(_volume);
-          _fallbackPool.add(player);
-        } catch (_) {
-          final fallbackPlayer = AudioPlayer();
-          await fallbackPlayer.setVolume(_volume);
-          _fallbackPool.add(fallbackPlayer);
-        }
-      }
-      debugPrint(
-          '[AudioEngine Fallback] Created ${_fallbackPool.length} AudioPlayers');
     }
 
     final initEnd = _stopwatch.elapsedMicroseconds / 1000.0;
@@ -223,26 +219,22 @@ class DrumAudioService with WidgetsBindingObserver {
           _successfulPlayCount++;
           _lastStreamId = streamId;
           debugPrint(
-              '[AudioTrace] soundAsset: $soundAsset | soundId: ${_nativeSoundIds[soundAsset]} | streamId: $streamId | latency: ${_lastLatencyMs.toStringAsFixed(2)}ms');
+              '[AudioTrace Native] soundAsset: $soundAsset | soundId: ${_nativeSoundIds[soundAsset]} | streamId: $streamId | latency: ${_lastLatencyMs.toStringAsFixed(2)}ms');
         } else {
-          _failedPlayCount++;
-          _lastErrorMessage = 'Stream ID 0 returned for $soundAsset';
-          debugPrint(
-              '[AudioTrace ERROR] streamId is 0 for asset $soundAsset');
+          // Native streamId == 0 (e.g. unready or busy) -> Fallback seamlessly!
+          _lastErrorMessage = 'Stream ID 0 returned for $soundAsset - Using AudioPlayer fallback';
+          debugPrint('[AudioTrace Native Fallback] streamId is 0 for asset $soundAsset, invoking AudioPlayer fallback');
+          _playFallbackAsset(soundAsset, requestMs);
         }
       }).catchError((e) {
-        _failedPlayCount++;
-        _lastErrorMessage = e.toString();
-        debugPrint('[AudioTrace ERROR] Native play error for $soundAsset: $e');
+        // Native invocation error -> Fallback seamlessly!
+        _lastErrorMessage = 'Native play error: $e - Using AudioPlayer fallback';
+        debugPrint('[AudioTrace Native Error Fallback] Error for $soundAsset: $e, invoking AudioPlayer fallback');
+        _playFallbackAsset(soundAsset, requestMs);
       });
-    } else if (defaultTargetPlatform != TargetPlatform.android) {
-      // 2. Non-Android Fallback Path
-      _playFallbackAsset(soundAsset, requestMs);
     } else {
-      _failedPlayCount++;
-      _lastErrorMessage = 'Native SoundPool not active for $soundAsset';
-      debugPrint(
-          '[AudioTrace ERROR] Native SoundPool not active for $soundAsset');
+      // 2. Direct Fallback Path for non-Android or unready native assets
+      _playFallbackAsset(soundAsset, requestMs);
     }
   }
 
@@ -257,7 +249,7 @@ class DrumAudioService with WidgetsBindingObserver {
         _lastLatencyMs = playEnd - playStart;
         _successfulPlayCount++;
         debugPrint(
-            '[AudioTrace Fallback] soundAsset: $soundAsset | playInvoked: ${playStart.toStringAsFixed(2)}ms | latency: ${_lastLatencyMs.toStringAsFixed(2)}ms');
+            '[AudioTrace Fallback Pool] soundAsset: $soundAsset | latency: ${_lastLatencyMs.toStringAsFixed(2)}ms');
       }).catchError((e) {
         _failedPlayCount++;
         _lastErrorMessage = 'Fallback error: $e';
@@ -307,3 +299,4 @@ class DrumAudioService with WidgetsBindingObserver {
     _initFuture = null;
   }
 }
+

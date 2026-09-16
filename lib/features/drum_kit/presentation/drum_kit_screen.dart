@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../models/drum_component_model.dart';
 import '../../../services/drum_audio_service.dart';
 import '../../../widgets/drum_component_widget.dart';
-import '../../../widgets/audio_diagnostic_dialog.dart';
 import '../../../app/app_theme.dart';
 import '../../../app/app_constants.dart';
 import '../../../core/constants/audio_asset_registry.dart';
@@ -247,22 +246,6 @@ class _DrumKitToolbarState extends State<_DrumKitToolbar> {
                 });
               },
               tooltip: 'Toggle Haptics',
-            ),
-          ),
-
-          // Diagnostic Tool Button
-          Semantics(
-            button: true,
-            label: 'Open Audio Diagnostics',
-            child: IconButton(
-              icon: const Icon(
-                Icons.bug_report_rounded,
-                color: AppTheme.accentViolet,
-              ),
-              onPressed: () {
-                AudioDiagnosticDialog.show(context, widget.audioService);
-              },
-              tooltip: 'Audio Diagnostics',
             ),
           ),
         ],

@@ -219,7 +219,7 @@ class InstrumentSelectionScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       const Text(
-                        'Audio Engine: Native SoundPool Active (37 Assets Preloaded)',
+                        'Audio Engine: Low-Latency Polyphony Active (37 Samples)',
                         style: TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 11,
@@ -229,7 +229,7 @@ class InstrumentSelectionScreen extends StatelessWidget {
                     ],
                   ),
                   const Text(
-                    'Rivora v1.0.0',
+                    'Rivora Studio v1.0.0',
                     style: TextStyle(
                       color: AppTheme.textMuted,
                       fontSize: 11,

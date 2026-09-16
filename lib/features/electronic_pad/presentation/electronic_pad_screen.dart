@@ -20,56 +20,56 @@ class _ElectronicPadScreenState extends State<ElectronicPadScreen> {
       id: 'pad_kick',
       name: '808 Kick',
       soundPath: AssetPaths.padKick,
-      color: Color(0xFFE53935),
+      color: Color(0xFFEF4444),
       icon: Icons.trip_origin_rounded,
     ),
     _PadSpec(
       id: 'pad_snare',
       name: 'Trap Snare',
       soundPath: AssetPaths.padSnare,
-      color: Color(0xFFFB8C00),
+      color: Color(0xFFF97316),
       icon: Icons.album_rounded,
     ),
     _PadSpec(
       id: 'pad_clap',
       name: 'Hand Clap',
       soundPath: AssetPaths.padClap,
-      color: Color(0xFFFDD835),
+      color: Color(0xFFEAB308),
       icon: Icons.pan_tool_rounded,
     ),
     _PadSpec(
       id: 'pad_hihat_closed',
       name: 'Closed Hat',
       soundPath: AssetPaths.padHiHatClosed,
-      color: Color(0xFF43A047),
+      color: Color(0xFF22C55E),
       icon: Icons.disc_full_rounded,
     ),
     _PadSpec(
       id: 'pad_hihat_open',
       name: 'Open Hat',
       soundPath: AssetPaths.padHiHatOpen,
-      color: Color(0xFF00ACC1),
+      color: Color(0xFF06B6D4),
       icon: Icons.adjust_rounded,
     ),
     _PadSpec(
       id: 'pad_tom',
       name: '808 Tom',
       soundPath: AssetPaths.padTom,
-      color: Color(0xFF1E88E5),
+      color: Color(0xFF3B82F6),
       icon: Icons.circle_outlined,
     ),
     _PadSpec(
       id: 'pad_synth_hit',
       name: 'Synth Stab',
       soundPath: AssetPaths.padSynthHit,
-      color: Color(0xFF8E24AA),
+      color: Color(0xFFA855F7),
       icon: Icons.flash_on_rounded,
     ),
     _PadSpec(
       id: 'pad_rim',
       name: 'Rim Shot',
       soundPath: AssetPaths.padRim,
-      color: Color(0xFFEC407A),
+      color: Color(0xFFEC4899),
       icon: Icons.blur_circular_rounded,
     ),
   ];
@@ -145,7 +145,7 @@ class _ElectronicPadScreenState extends State<ElectronicPadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             const Text(
               'Tap MPC beat pads for electronic sounds',
               textAlign: TextAlign.center,
@@ -166,24 +166,40 @@ class _ElectronicPadScreenState extends State<ElectronicPadScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1.25,
+                          horizontal: 24, vertical: 8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF131824),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color: const Color(0xFF232B3E), width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black54,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        itemCount: _pads.length,
-                        itemBuilder: (context, index) {
-                          final pad = _pads[index];
-                          return _MpcPadWidget(
-                            pad: pad,
-                            onTap: () => _playPad(pad.soundPath),
-                          );
-                        },
+                        padding: const EdgeInsets.all(14),
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 1.25,
+                          ),
+                          itemCount: _pads.length,
+                          itemBuilder: (context, index) {
+                            final pad = _pads[index];
+                            return _MpcPadWidget(
+                              pad: pad,
+                              onTap: () => _playPad(pad.soundPath),
+                            );
+                          },
+                        ),
                       ),
                     ),
             ),
@@ -249,21 +265,21 @@ class _MpcPadWidgetState extends State<_MpcPadWidget> {
               decoration: BoxDecoration(
                 color: _isPressed
                     ? widget.pad.color.withValues(alpha: 0.9)
-                    : AppTheme.surfaceSecondary,
+                    : const Color(0xFF1E2638),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _isPressed
                       ? Colors.white
-                      : widget.pad.color.withValues(alpha: 0.5),
-                  width: _isPressed ? 2.0 : 1.0,
+                      : widget.pad.color.withValues(alpha: 0.6),
+                  width: _isPressed ? 2.0 : 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: _isPressed
-                        ? widget.pad.color.withValues(alpha: 0.6)
-                        : Colors.black.withValues(alpha: 0.4),
+                        ? widget.pad.color.withValues(alpha: 0.65)
+                        : Colors.black.withValues(alpha: 0.35),
                     blurRadius: _isPressed ? 12 : 6,
-                    offset: const Offset(0, 3),
+                    offset: Offset(0, _isPressed ? 1 : 3),
                   ),
                 ],
               ),
@@ -311,3 +327,4 @@ class _PadSpec {
     required this.icon,
   });
 }
+

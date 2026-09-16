@@ -222,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 subtitle: const Text(
-                  'Inspect native SoundPool load state (37 assets)',
+                  'Inspect native SoundPool & fallback state (37 assets)',
                   style:
                       TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),

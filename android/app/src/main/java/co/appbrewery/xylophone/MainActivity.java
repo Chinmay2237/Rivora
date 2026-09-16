@@ -42,8 +42,9 @@ public class MainActivity extends FlutterActivity {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
 
+        // 48 maxStreams to handle polyphony across all 37 preloaded instruments & rapid taps
         soundPool = new SoundPool.Builder()
-                .setMaxStreams(16)
+                .setMaxStreams(48)
                 .setAudioAttributes(audioAttributes)
                 .build();
 
@@ -93,14 +94,19 @@ public class MainActivity extends FlutterActivity {
             return soundMap.get(assetPath);
         }
 
-        String flutterKey = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(assetPath);
-        String flutterKeyWithAssets = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset("assets/" + assetPath);
+        String cleanPath = assetPath.startsWith("assets/") ? assetPath.substring(7) : assetPath;
+        String rawPath = assetPath.startsWith("assets/") ? assetPath : "assets/" + assetPath;
+
+        String lookupKeyRaw = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(rawPath);
+        String lookupKeyClean = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(cleanPath);
+
         String[] candidateKeys = new String[]{
-                flutterKey,
-                flutterKeyWithAssets,
-                "flutter_assets/" + assetPath,
-                "flutter_assets/assets/" + assetPath,
-                assetPath
+                lookupKeyRaw,
+                lookupKeyClean,
+                "flutter_assets/" + rawPath,
+                "flutter_assets/" + cleanPath,
+                rawPath,
+                cleanPath
         };
 
         // Attempt 1: Direct openFd using candidate asset lookup keys
@@ -112,8 +118,10 @@ public class MainActivity extends FlutterActivity {
                 afd.close();
                 if (soundId > 0) {
                     soundMap.put(assetPath, soundId);
+                    soundMap.put(rawPath, soundId);
+                    soundMap.put(cleanPath, soundId);
                     sampleIdToAssetMap.put(soundId, assetPath);
-                    Log.d(TAG, "Preloaded asset via openFd: " + assetPath + " (key: " + key + ") -> soundId: " + soundId);
+                    Log.d(TAG, "Preloaded asset via openFd: " + assetPath + " (resolved key: " + key + ") -> soundId: " + soundId);
                     return soundId;
                 }
             } catch (Exception ignored) {
@@ -144,6 +152,8 @@ public class MainActivity extends FlutterActivity {
                 int soundId = soundPool.load(cacheFile.getAbsolutePath(), 1);
                 if (soundId > 0) {
                     soundMap.put(assetPath, soundId);
+                    soundMap.put(rawPath, soundId);
+                    soundMap.put(cleanPath, soundId);
                     sampleIdToAssetMap.put(soundId, assetPath);
                     Log.d(TAG, "Preloaded asset via File Cache: " + assetPath + " (" + cacheFile.getAbsolutePath() + ") -> soundId: " + soundId);
                     return soundId;
@@ -275,3 +285,4 @@ public class MainActivity extends FlutterActivity {
         super.onDestroy();
     }
 }
+

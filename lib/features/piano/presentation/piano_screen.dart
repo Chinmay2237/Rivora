@@ -14,6 +14,7 @@ class PianoScreen extends StatefulWidget {
 class _PianoScreenState extends State<PianoScreen> {
   final DrumAudioService _audioService = DrumAudioService();
   bool _isLoading = true;
+  bool _showLabels = true;
 
   final List<_PianoKeySpec> _whiteKeys = const [
     _PianoKeySpec(noteKey: 'c4', label: 'C4', isBlack: false),
@@ -57,6 +58,12 @@ class _PianoScreenState extends State<PianoScreen> {
     _audioService.playSound(path, pointerDownMs: nowMs);
   }
 
+  void _toggleLabels() {
+    setState(() {
+      _showLabels = !_showLabels;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,6 +94,14 @@ class _PianoScreenState extends State<PianoScreen> {
         actions: [
           IconButton(
             icon: Icon(
+              _showLabels ? Icons.label_rounded : Icons.label_outlined,
+              color: _showLabels ? AppTheme.accentViolet : AppTheme.textSecondary,
+            ),
+            onPressed: _toggleLabels,
+            tooltip: _showLabels ? 'Hide Note Labels' : 'Show Note Labels',
+          ),
+          IconButton(
+            icon: Icon(
               _audioService.isMuted
                   ? Icons.volume_off_rounded
                   : Icons.volume_up_rounded,
@@ -107,7 +122,7 @@ class _PianoScreenState extends State<PianoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             const Text(
               'Tap keys to play acoustic piano notes (C4 – C5)',
               textAlign: TextAlign.center,
@@ -128,47 +143,64 @@ class _PianoScreenState extends State<PianoScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final totalWidth = constraints.maxWidth;
-                          final totalHeight = constraints.maxHeight;
-                          final whiteKeyWidth = totalWidth / _whiteKeys.length;
-                          final blackKeyWidth = whiteKeyWidth * 0.62;
-                          final blackKeyHeight = totalHeight * 0.58;
+                          horizontal: 20, vertical: 8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1E1510),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF382318), width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black54,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final totalWidth = constraints.maxWidth;
+                            final totalHeight = constraints.maxHeight;
+                            final whiteKeyWidth = totalWidth / _whiteKeys.length;
+                            final blackKeyWidth = whiteKeyWidth * 0.58;
+                            final blackKeyHeight = totalHeight * 0.58;
 
-                          return Stack(
-                            children: [
-                              // 1. White Keys Row
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  for (int i = 0; i < _whiteKeys.length; i++)
-                                    _PianoWhiteKeyWidget(
-                                      spec: _whiteKeys[i],
-                                      onTap: () =>
-                                          _playNote(_whiteKeys[i].noteKey),
-                                    ),
-                                ],
-                              ),
-
-                              // 2. Black Keys Stack Overlay
-                              for (final blackSpec in _blackKeys)
-                                Positioned(
-                                  left: (blackSpec.whiteIndexLeft! + 1) *
-                                          whiteKeyWidth -
-                                      (blackKeyWidth / 2),
-                                  top: 0,
-                                  width: blackKeyWidth,
-                                  height: blackKeyHeight,
-                                  child: _PianoBlackKeyWidget(
-                                    spec: blackSpec,
-                                    onTap: () => _playNote(blackSpec.noteKey),
-                                  ),
+                            return Stack(
+                              children: [
+                                // 1. White Keys Row
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (int i = 0; i < _whiteKeys.length; i++)
+                                      _PianoWhiteKeyWidget(
+                                        spec: _whiteKeys[i],
+                                        showLabel: _showLabels,
+                                        onTap: () =>
+                                            _playNote(_whiteKeys[i].noteKey),
+                                      ),
+                                  ],
                                 ),
-                            ],
-                          );
-                        },
+
+                                // 2. Black Keys Stack Overlay
+                                for (final blackSpec in _blackKeys)
+                                  Positioned(
+                                    left: (blackSpec.whiteIndexLeft! + 1) *
+                                            whiteKeyWidth -
+                                        (blackKeyWidth / 2),
+                                    top: 0,
+                                    width: blackKeyWidth,
+                                    height: blackKeyHeight,
+                                    child: _PianoBlackKeyWidget(
+                                      spec: blackSpec,
+                                      showLabel: _showLabels,
+                                      onTap: () => _playNote(blackSpec.noteKey),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
             ),
@@ -182,10 +214,12 @@ class _PianoScreenState extends State<PianoScreen> {
 
 class _PianoWhiteKeyWidget extends StatefulWidget {
   final _PianoKeySpec spec;
+  final bool showLabel;
   final VoidCallback onTap;
 
   const _PianoWhiteKeyWidget({
     required this.spec,
+    required this.showLabel,
     required this.onTap,
   });
 
@@ -226,36 +260,41 @@ class _PianoWhiteKeyWidgetState extends State<_PianoWhiteKeyWidget> {
           onPointerUp: (_) => _handlePointerUp(),
           onPointerCancel: (_) => _handlePointerUp(),
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 2.0),
+            margin: const EdgeInsets.symmetric(horizontal: 1.5),
             decoration: BoxDecoration(
-              color: _isPressed
-                  ? const Color(0xFFE2E8F0)
-                  : const Color(0xFFF8FAFC),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: _isPressed
+                    ? [const Color(0xFFCBD5E1), const Color(0xFFE2E8F0)]
+                    : [const Color(0xFFFFFFFF), const Color(0xFFF1F5F9)],
+              ),
               borderRadius:
                   const BorderRadius.vertical(bottom: Radius.circular(8.0)),
-              border: Border.all(color: const Color(0xFFCBD5E1), width: 1.0),
+              border: Border.all(color: const Color(0xFF94A3B8), width: 1.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withValues(alpha: _isPressed ? 0.2 : 0.4),
+                  blurRadius: _isPressed ? 2 : 5,
+                  offset: Offset(0, _isPressed ? 1 : 3),
                 ),
               ],
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Text(
-                    widget.spec.label,
-                    style: const TextStyle(
-                      color: Color(0xFF334155),
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                if (widget.showLabel)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: Text(
+                      widget.spec.label,
+                      style: TextStyle(
+                        color: _isPressed ? const Color(0xFF0F172A) : const Color(0xFF334155),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -267,10 +306,12 @@ class _PianoWhiteKeyWidgetState extends State<_PianoWhiteKeyWidget> {
 
 class _PianoBlackKeyWidget extends StatefulWidget {
   final _PianoKeySpec spec;
+  final bool showLabel;
   final VoidCallback onTap;
 
   const _PianoBlackKeyWidget({
     required this.spec,
+    required this.showLabel,
     required this.onTap,
   });
 
@@ -311,34 +352,42 @@ class _PianoBlackKeyWidgetState extends State<_PianoBlackKeyWidget> {
         onPointerCancel: (_) => _handlePointerUp(),
         child: Container(
           decoration: BoxDecoration(
-            color: _isPressed
-                ? const Color(0xFF334155)
-                : const Color(0xFF0F172A),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: _isPressed
+                  ? [const Color(0xFF334155), const Color(0xFF1E293B)]
+                  : [const Color(0xFF1E293B), const Color(0xFF090D16)],
+            ),
             borderRadius:
                 const BorderRadius.vertical(bottom: Radius.circular(6.0)),
-            border: Border.all(color: const Color(0xFF475569), width: 1.0),
+            border: Border.all(
+              color: _isPressed ? AppTheme.accentViolet : const Color(0xFF475569),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.6),
-                blurRadius: 6,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.65),
+                blurRadius: _isPressed ? 3 : 7,
+                offset: Offset(0, _isPressed ? 2 : 4),
               ),
             ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  widget.spec.label,
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+              if (widget.showLabel)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    widget.spec.label,
+                    style: TextStyle(
+                      color: _isPressed ? Colors.white : const Color(0xFFCBD5E1),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -360,3 +409,4 @@ class _PianoKeySpec {
     this.whiteIndexLeft,
   });
 }
+

@@ -3,7 +3,6 @@ import '../../../app/app_theme.dart';
 import '../../../core/constants/asset_paths.dart';
 import '../../../core/constants/audio_asset_registry.dart';
 import '../../../services/drum_audio_service.dart';
-import '../../../widgets/audio_diagnostic_dialog.dart';
 
 class XylophoneScreen extends StatefulWidget {
   const XylophoneScreen({super.key});
@@ -17,13 +16,55 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
   bool _isLoading = true;
 
   final List<_XyloNote> _notes = const [
-    _XyloNote(color: Color(0xFFE53935), soundNumber: 1, name: 'C', label: 'Do'),
-    _XyloNote(color: Color(0xFFFB8C00), soundNumber: 2, name: 'D', label: 'Re'),
-    _XyloNote(color: Color(0xFFFDD835), soundNumber: 3, name: 'E', label: 'Mi'),
-    _XyloNote(color: Color(0xFF43A047), soundNumber: 4, name: 'F', label: 'Fa'),
-    _XyloNote(color: Color(0xFF00ACC1), soundNumber: 5, name: 'G', label: 'Sol'),
-    _XyloNote(color: Color(0xFF1E88E5), soundNumber: 6, name: 'A', label: 'La'),
-    _XyloNote(color: Color(0xFF8E24AA), soundNumber: 7, name: 'B', label: 'Si'),
+    _XyloNote(
+      color: Color(0xFFDC2626),
+      accentColor: Color(0xFFEF4444),
+      soundNumber: 1,
+      name: 'C',
+      label: 'Do',
+    ),
+    _XyloNote(
+      color: Color(0xFFEA580C),
+      accentColor: Color(0xFFF97316),
+      soundNumber: 2,
+      name: 'D',
+      label: 'Re',
+    ),
+    _XyloNote(
+      color: Color(0xFFD97706),
+      accentColor: Color(0xFFF59E0B),
+      soundNumber: 3,
+      name: 'E',
+      label: 'Mi',
+    ),
+    _XyloNote(
+      color: Color(0xFF16A34A),
+      accentColor: Color(0xFF22C55E),
+      soundNumber: 4,
+      name: 'F',
+      label: 'Fa',
+    ),
+    _XyloNote(
+      color: Color(0xFF0284C7),
+      accentColor: Color(0xFF0EA5E9),
+      soundNumber: 5,
+      name: 'G',
+      label: 'Sol',
+    ),
+    _XyloNote(
+      color: Color(0xFF2563EB),
+      accentColor: Color(0xFF3B82F6),
+      soundNumber: 6,
+      name: 'A',
+      label: 'La',
+    ),
+    _XyloNote(
+      color: Color(0xFF7C3AED),
+      accentColor: Color(0xFF8B5CF6),
+      soundNumber: 7,
+      name: 'B',
+      label: 'Si',
+    ),
   ];
 
   @override
@@ -60,10 +101,13 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
               width: 22,
               height: 22,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.shrink(),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.graphic_eq_rounded,
+                size: 20,
+                color: AppTheme.accentViolet,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             const Text(
               'Acoustic Xylophone',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -81,26 +125,14 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.bug_report_rounded,
-              color: AppTheme.accentViolet,
-            ),
-            onPressed: () {
-              AudioDiagnosticDialog.show(context, _audioService);
-            },
-            tooltip: 'Audio Diagnostics',
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             const Text(
-              'Tap bars to play acoustic notes',
+              'Tap bars to play acoustic notes (C4 – B4)',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppTheme.textSecondary,
@@ -119,47 +151,47 @@ class _XylophoneScreenState extends State<XylophoneScreen> {
                     )
                   : Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 8),
+                          horizontal: 24, vertical: 8),
                       child: Stack(
                         children: [
-                          // Wooden Frame Support Bars Top & Bottom
+                          // Mahogany Wood Frame Support Rails Top & Bottom
                           Positioned(
-                            top: 20,
+                            top: 24,
                             left: 0,
                             right: 0,
-                            height: 14,
+                            height: 18,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF2C1E18),
-                                borderRadius: BorderRadius.circular(4),
+                                color: const Color(0xFF2C1910),
+                                borderRadius: BorderRadius.circular(6),
                                 border:
-                                    Border.all(color: const Color(0xFF1A120E)),
+                                    Border.all(color: const Color(0xFF190D08)),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black45,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
+                                    color: Colors.black54,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
                                   ),
                                 ],
                               ),
                             ),
                           ),
                           Positioned(
-                            bottom: 20,
+                            bottom: 24,
                             left: 0,
                             right: 0,
-                            height: 14,
+                            height: 18,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF2C1E18),
-                                borderRadius: BorderRadius.circular(4),
+                                color: const Color(0xFF2C1910),
+                                borderRadius: BorderRadius.circular(6),
                                 border:
-                                    Border.all(color: const Color(0xFF1A120E)),
+                                    Border.all(color: const Color(0xFF190D08)),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black45,
-                                    blurRadius: 4,
-                                    offset: Offset(0, -2),
+                                    color: Colors.black54,
+                                    blurRadius: 6,
+                                    offset: Offset(0, -3),
                                   ),
                                 ],
                               ),
@@ -231,8 +263,8 @@ class _XylophoneBarState extends State<_XylophoneBar> {
 
   @override
   Widget build(BuildContext context) {
-    // Proportional bar height scaling (Note 1 lowest pitch/longest bar -> Note 7 highest pitch/shortest bar)
-    final verticalPadding = 4.0 + (widget.index * 6.0);
+    // Acoustic bar length graduation (C4 longest bar -> B4 shortest bar)
+    final verticalPadding = 2.0 + (widget.index * 7.0);
 
     return Expanded(
       child: Semantics(
@@ -247,7 +279,7 @@ class _XylophoneBarState extends State<_XylophoneBar> {
           onPointerCancel: (_) => _handleTapUp(),
           child: RepaintBoundary(
             child: AnimatedScale(
-              scale: _isPressed ? 0.96 : 1.0,
+              scale: _isPressed ? 0.95 : 1.0,
               duration: AppTheme.fastAnimation,
               curve: Curves.easeOutCubic,
               child: Container(
@@ -256,39 +288,53 @@ class _XylophoneBarState extends State<_XylophoneBar> {
                   vertical: verticalPadding,
                 ),
                 decoration: BoxDecoration(
-                  color: widget.note.color,
-                  borderRadius: BorderRadius.circular(8.0),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      _isPressed ? widget.note.accentColor : widget.note.color,
+                      widget.note.color.withValues(alpha: 0.85),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10.0),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.20),
-                    width: 1.0,
+                    color: Colors.white.withValues(alpha: _isPressed ? 0.45 : 0.22),
+                    width: 1.2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
+                      color: Colors.black.withValues(alpha: 0.5),
+                      blurRadius: _isPressed ? 3 : 8,
+                      offset: Offset(0, _isPressed ? 1 : 4),
                     ),
                   ],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Top Chrome Mounting Pin
+                    // Top Chrome Screw Mounting Pin
                     Container(
                       margin: const EdgeInsets.only(top: 10),
-                      width: 8,
-                      height: 8,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFFE5E7EB),
+                        color: const Color(0xFFE2E8F0),
                         border: Border.all(
-                          color: const Color(0xFF9CA3AF),
-                          width: 1,
+                          color: const Color(0xFF64748B),
+                          width: 1.5,
                         ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
                     ),
 
-                    // Note Pitch Name (C, D, E...) & Solfège Label (Do, Re...)
+                    // Pitch Letter Name (C, D, E...) & Solfège (Do, Re, Mi...)
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -297,10 +343,11 @@ class _XylophoneBarState extends State<_XylophoneBar> {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
                             shadows: [
                               Shadow(
-                                color: Colors.black45,
+                                color: Colors.black54,
                                 blurRadius: 4,
                                 offset: Offset(0, 1),
                               ),
@@ -311,26 +358,33 @@ class _XylophoneBarState extends State<_XylophoneBar> {
                         Text(
                           widget.note.label,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: Colors.white.withValues(alpha: 0.90),
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
 
-                    // Bottom Chrome Mounting Pin
+                    // Bottom Chrome Screw Mounting Pin
                     Container(
                       margin: const EdgeInsets.only(bottom: 10),
-                      width: 8,
-                      height: 8,
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFFE5E7EB),
+                        color: const Color(0xFFE2E8F0),
                         border: Border.all(
-                          color: const Color(0xFF9CA3AF),
-                          width: 1,
+                          color: const Color(0xFF64748B),
+                          width: 1.5,
                         ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 2,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -346,14 +400,17 @@ class _XylophoneBarState extends State<_XylophoneBar> {
 
 class _XyloNote {
   final Color color;
+  final Color accentColor;
   final int soundNumber;
   final String name;
   final String label;
 
   const _XyloNote({
     required this.color,
+    required this.accentColor,
     required this.soundNumber,
     required this.name,
     required this.label,
   });
 }
+
